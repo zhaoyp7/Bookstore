@@ -1,13 +1,15 @@
 ## 业务流图
 ![](业务流图.png)
+
 ## 数据流图
 ![](数据流图.png)
+
 ## 数据词典
 ### 用户信息：
 - 账号：字符串，30位以内，包含数字、字母、下划线
 - 密码：字符串，30位以内，包含数字、字母、下划线
 - 用户名：字符串，30位以内，包含数字、字母、下划线
-- 类型：一位整数，0、1、3、7分别代表游客、顾客、员工、店主
+- 类型：一位整数，0、1、2、3分别代表游客、顾客、员工、店主
 ### 图书信息：
 - ISBN 号：字符串，20位以内
 - 书名：字符串，60位以内
@@ -19,6 +21,7 @@
 - 操作者：字符串，20位以内，记录操作者的用户名
 - 操作类型：整数，0~10分别代表以上11种操作
 - 操作参数：具体见下
+
 ## 功能说明
 ### 用户注册：
 输入账号、密码、用户名。
@@ -99,6 +102,7 @@
 
 返回查找到的书目信息，每一行格式为：
 `book[id]: ISBN=[ISBN] author=[author] key=[key] name=[book_name] price=[price] stock=[stock]\n`
+
 最后输出：
 `Totally find [number] book(s)`
 
@@ -126,6 +130,7 @@
 ### 查询采购信息：
 按照采购顺序输出采购图书的 ISBN 号、数量、进价，每一行格式为：
 `book[id] ISBN=[ISBN] number=[number] cost=[cost]`
+
 最后输出：
 `Totally find [number] stock information`
 ### 查询销售情况：
@@ -138,10 +143,12 @@
 
 按操作顺序输出每次操作类型、具体操作信息，每一行格式为：
 `operation[id] operation_type=[operation_type] [Specific operational information...]`
+
 最后输出：
 `Totally find [number] operational information`
 ### 查看系统日志：
 按操作顺序输出每次操作类型、操作者、具体操作信息，每一行格式为：
 `operation[id] operation_type=[operation_type] user=[user_account] [Specific operational information...]`
+
 最后输出：
 `Totally find [number] operational information`
