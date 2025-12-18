@@ -228,11 +228,13 @@ void Select() {
     // printf("new index = %d\n",index);
     book_ISBN_block.insert(ISBN.data(), index);
     // std::cout << "insert ISBN = " << ISBN << '\n';
-    strncpy(now_user.selected_ISBN, ISBN.data(), now_user.MAX_LEN);
+    // strncpy(now_user.selected_ISBN, ISBN.data(), now_user.MAX_LEN);
+    now_user.selected_index = index;
     login_stack.back() = now_user;
   } else {
-    // int index = pos[0];
-    strncpy(now_user.selected_ISBN, ISBN.data(), now_user.MAX_LEN);
+    int index = pos[0];
+    // strncpy(now_user.selected_ISBN, ISBN.data(), now_user.MAX_LEN);
+    now_user.selected_index = index;
     login_stack.back() = now_user;
   }
 }
@@ -240,7 +242,8 @@ void Import() {
   if (login_stack.empty() || now_user.privilege < 3) {
     throw Invalid();
   }
-  if (now_user.selected_ISBN[0] == '\0') {
+  // if (now_user.selected_ISBN[0] == '\0') {
+  if (now_user.selected_index == -1) {
     throw Invalid();
   }
   std::string quantity_str = command.getstr();
@@ -256,9 +259,10 @@ void Import() {
   if (quantity <= 0 || cost <= 0) {
     throw Invalid();
   }
-  std::string ISBN = now_user.selected_ISBN;
-  std::vector<int> pos = book_ISBN_block.find(ISBN.data());
-  int index = pos[0];
+  // std::string ISBN = now_user.selected_ISBN;
+  // std::vector<int> pos = book_ISBN_block.find(ISBN.data());
+  // int index = pos[0];
+  int index = now_user.selected_index;
   Book book;
   book_data.read(book, index);
   book.stock += quantity;
@@ -385,7 +389,8 @@ void Modify() {
   if (login_stack.empty() || now_user.privilege < 3) {
     throw Invalid();
   }
-  if (now_user.selected_ISBN[0] == '\0') {
+  // if (now_user.selected_ISBN[0] == '\0') {
+  if (now_user.selected_index == -1) {
     throw Invalid();
   }
   std::string ISBN = "", name = "", author = "", key = "", price_str = "";
@@ -411,11 +416,12 @@ void Modify() {
     throw Invalid();
   }
   // std::cout << "find ISBN = " << now_user.selected_ISBN << '\n';
-  std::vector<int> pos = book_ISBN_block.find(now_user.selected_ISBN);
+  // std::vector<int> pos = book_ISBN_block.find(now_user.selected_ISBN);
   // if (pos.empty()) {
   //   puts("EMPTY!!!");
   // }
-  int index = pos[0];
+  // int index = pos[0];
+  int index = now_user.selected_index;
   // printf("index = %d\n",index);
   Book book;
   book_data.read(book, index);
@@ -434,7 +440,7 @@ void Modify() {
   if (ISBN != "") {
     strncpy(book.ISBN, ISBN.data(), book.ISBN_LEN);
     book_ISBN_block.insert(book.ISBN, index);
-    strncpy(now_user.selected_ISBN, book.ISBN, book.ISBN_LEN);
+    // strncpy(now_user.selected_ISBN, book.ISBN, book.ISBN_LEN);
   }
   if (name != "") {
     strncpy(book.book_name, name.data(), book.MAX_LEN);
@@ -720,7 +726,7 @@ void init() {
 void Su() {
   std::string userID = command.getstr();
   std::string password = command.getstr();
-  if (!CheckUserID(userID) || !CheckPassward(password)) {
+  if (!CheckUserID(userID)) {
     throw Invalid();
   }
   // std::cout << userID << ' ' << password << '\n';
@@ -738,6 +744,11 @@ void Su() {
   // return ;
   // std::cout << user.userID << ' ' << user.password << ' ' << user.privilege
   // << ' ' << user.username << '\n'; return ;
+  if (password != "" && !CheckPassward(password)) {
+    throw Invalid();
+  } else if (password == "" && now_user.privilege <= user.privilege) {
+    throw Invalid();
+  }
   if (password == "" && now_user.privilege > user.privilege) {
     login_stack.push_back(user);
     now_user = user;
