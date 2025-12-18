@@ -19,6 +19,14 @@ BlockLinkedList book_name_block("book_name_block");
 BlockLinkedList book_author_block("book_author_block");
 BlockLinkedList book_key_block("book_key_block");
 
+struct Finance { 
+  double income, expenditure;
+  int pre;
+};
+MemoryRiver<Finance> finance_data("finance_data");
+// info1: last index
+// info2: Total Count
+
 Command command;
 Account now_user;
 std::map<std::string, int> login_state;
@@ -126,6 +134,7 @@ bool CheckPrice(const std::string &str) {
   return true;
 }
 bool CheckCost(const std::string &str) { return CheckPrice(str); }
+bool CheckCount(const std::string &str) { return CheckQuantity(str); }
 double StringToDouble(const std::string &str) {
   int sz = str.size(), flag = 1, pos = 0;
   double ans = 0, val = 1;
@@ -189,6 +198,16 @@ void Buy() {
   printf("%.2lf\n", cost);
   book.stock -= quantity;
   book_data.update(book, index);
+
+  int finance_index;
+  finance_data.get_info(finance_index, 1);
+  Finance tmp = (Finance){cost, 0, finance_index};
+  finance_index = finance_data.write(tmp);
+  finance_data.write_info(finance_index, 1);
+  int count;
+  finance_data.get_info(count, 2);
+  count++;
+  finance_data.write_info(count, 2);
 }
 void Select() {
   if (login_stack.empty() || now_user.privilege < 3) {
@@ -244,6 +263,16 @@ void Import() {
   book_data.read(book, index);
   book.stock += quantity;
   book_data.update(book, index);
+
+  int finance_index;
+  finance_data.get_info(finance_index, 1);
+  Finance tmp = (Finance){0, cost, finance_index};
+  finance_index = finance_data.write(tmp);
+  finance_data.write_info(finance_index, 1);
+  int count;
+  finance_data.get_info(count, 2);
+  count++;
+  finance_data.write_info(count, 2);
 }
 void CheckParameter(std::string &str, int &type) {
   if (str[0] != '-') {
@@ -520,13 +549,51 @@ void ShowBook() {
     puts("");
   }
 }
+void ShowFinance() {
+  if (login_stack.empty() || now_user.privilege < 7) {
+    throw Invalid();
+  }
+  std::string count_str = command.getstr();
+  if (count_str != "" && !CheckCount(count_str)) {
+    throw Invalid();
+  }
+  if (command.getstr() != "") {
+    throw Invalid();
+  }
+  int total_count, count;
+  double income = 0, expenditure = 0;
+  finance_data.get_info(total_count, 2);
+  if (count_str == "") {
+    count = total_count;
+  } else {
+    count = StringToInt(count_str);
+  }
+  if (count > total_count) {
+    throw Invalid();
+  }
+  if (count_str != "" && count == 0) {
+    puts("");
+    return ;
+  }
+  // printf("count = %d\n",count);
+  int index;
+  finance_data.get_info(index, 1);
+  Finance tmp;
+  while (count--) {
+    finance_data.read(tmp, index);
+    income += tmp.income;
+    expenditure += tmp.expenditure;
+    index = tmp.pre;
+  }
+  printf("+ %.2lf - %.2lf\n", income, expenditure);
+}
 void Show() {
   std::string tmp = command.getstr();
   if (tmp == "") {
     ShowBook();
   } else if (tmp == "finance") {
-    command.moveback();
-    // ShowFinance();
+    // command.moveback();
+    ShowFinance();
   } else {
     command.moveback();
     ShowBook();
@@ -640,6 +707,15 @@ void init() {
   }
 
   book_data.initialise();
+  
+  finance_data.initialise();
+  finance_data.get_info(index, 1);
+  if (index == 0) {
+    Finance tmp = (Finance){0, 0, 0};
+    index = finance_data.write(tmp);
+    finance_data.write_info(index, 1);
+    finance_data.write_info(1, 2);
+  }
 }
 void Su() {
   std::string userID = command.getstr();
