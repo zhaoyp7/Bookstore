@@ -1,8 +1,8 @@
 // #include <cstring>
 // #include <fstream>
+#include "MemoryRiver.hpp"
 #include <iostream>
 #include <vector>
-#include "MemoryRiver.hpp"
 
 class BlockLinkedList {
 private:
@@ -101,6 +101,7 @@ private:
     }
     puts("***********leave print block***********");
   }
+
 public:
   BlockLinkedList(std::string str) : block_data(str) {
     memset(used_first_node, 0, sizeof(used_first_node));
@@ -128,7 +129,8 @@ public:
   }
   void insert(char *index, int value) {
     BlockNode block;
-    int pre_block, block_list_pos = FindBlockIndex(index, value, block, pre_block);
+    int pre_block,
+        block_list_pos = FindBlockIndex(index, value, block, pre_block);
     int block_pos = vis_block_pos[block_list_pos];
     int node_pos = FindNodeIndex(block, index, value);
     ListNode now_node = block.list[node_pos];
@@ -149,7 +151,8 @@ public:
   }
   void del(char *index, int value) {
     BlockNode block;
-    int pre_block, block_list_pos = FindBlockIndex(index, value, block, pre_block);
+    int pre_block,
+        block_list_pos = FindBlockIndex(index, value, block, pre_block);
     int block_pos = vis_block_pos[block_list_pos];
     int node_pos = FindNodeIndex(block, index, value);
     ListNode now_node = block.list[node_pos];
@@ -199,7 +202,7 @@ public:
       }
     }
     // int number = 0;
-    std::vector <int> ans;
+    std::vector<int> ans;
     while (block_pos) {
       now_node = block.list[node_pos];
       if (strcmp(now_node.index, index) != 0) {
@@ -222,6 +225,40 @@ public:
     //   std::cout << "null";
     // }
     // std::cout << '\n';
+    return ans;
+  }
+  std::vector<int> findall() {
+    BlockNode block;
+    // int pre_block, block_list_pos = FindBlockIndex(index, -1, block, pre_block);
+    int pre_block = 0, block_list_pos = nxt_first_node[0];
+    int block_pos = vis_block_pos[block_list_pos];
+    block_data.read(block, block_pos);
+    // int node_pos = FindNodeIndex(block, index, -1);
+    int node_pos = 0;
+    ListNode now_node = block.list[node_pos];
+    if (node_pos < block.size) {
+      node_pos++;
+    } else {
+      block_pos = block.nxt_block_index;
+      node_pos = 1;
+      if (block_pos) {
+        block_data.read(block, block_pos);
+      }
+    }
+    std::vector<int> ans;
+    while (block_pos) {
+      now_node = block.list[node_pos];
+      ans.push_back(now_node.value);
+      if (node_pos < block.size) {
+        node_pos++;
+      } else {
+        block_pos = block.nxt_block_index;
+        node_pos = 1;
+        if (block_pos) {
+          block_data.read(block, block_pos);
+        }
+      }
+    }
     return ans;
   }
 };

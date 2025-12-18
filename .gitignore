@@ -5,5 +5,6 @@ tests.pdf
 testcases
 /build
 code
-*in
+*.in
+*.out
 /test_output

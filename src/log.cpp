@@ -1,7 +1,3 @@
 
 
-class log {
-
-
-
-};
+class log {};
