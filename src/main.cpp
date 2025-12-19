@@ -1,8 +1,8 @@
-#include "BlockLinkedList.cpp"
+#include "BlockLinkedList.hpp"
 #include "MemoryRiver.hpp"
-#include "account.cpp"
-#include "book.cpp"
-#include "command.cpp"
+#include "account.hpp"
+#include "book.hpp"
+#include "command.hpp"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
