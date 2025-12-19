@@ -688,13 +688,18 @@ bool CheckPrivilege(const std::string &str) {
   if (sz > 1 || sz == 0) {
     return false;
   }
-  return (str[0] >= '0' && str[0] <= '9');
+  return (str[0] == '1' || str[0] == '3' || str[0] == '7');
 }
 bool CheckUsername(const std::string &str) {
   int sz = str.size();
   if (sz == 0) {
     return false;
   }
+  // for (int i = 0; i < sz; i++) {
+  //   if (str[i] < 32 || str[i] > 126) {
+  //     return false;
+  //   }
+  // }
   return true;
 }
 
