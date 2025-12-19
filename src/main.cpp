@@ -672,8 +672,10 @@ void GetBookInformation(std::string &ISBN, std::string &name,
       (author != "") ? (throw Invalid()) : (author = str);
     } else if (type == 4) {
       (key != "") ? (throw Invalid()) : (key = str);
-    } else if (type == 5) {
+    } else if (type == 5 && op == 1) {
       (price_str != "") ? (throw Invalid()) : (price_str = str);
+    } else {
+      throw Invalid();
     }
     if (op == 2 &&  type <= last_type) {
       throw Invalid();
