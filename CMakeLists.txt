@@ -13,4 +13,5 @@ add_executable(code src/BlockLinkedList.cpp
                     src/command.cpp
                     src/book.cpp
                     src/log.cpp
+                    src/utils.cpp
                     src/main.cpp)
