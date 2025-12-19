@@ -37,12 +37,12 @@ bool cmpISBN(const Book &a, const Book &b) {
 }
 
 bool CheckUserID(const std::string &str);
-bool CheckPassward(const std::string &str);
+bool CheckPassward(const std::string &str) { return CheckUserID(str); }
 bool CheckPrivilege(const std::string &str);
 bool CheckUsername(const std::string &str);
 bool CheckISBN(const std::string &str);
 bool CheckBookName(const std::string &str);
-bool CheckAuthor(const std::string &str);
+bool CheckAuthor(const std::string &str) { return CheckBookName(str); }
 bool CheckKeyword(const std::string &str);
 bool CheckQuantity(const std::string &str);
 bool CheckPrice(const std::string &str);
@@ -71,8 +71,6 @@ void Modify();
 
 int KeywordNumber(const std::string &str);
 bool FindKeyword(const Book &book, const std::string &key);
-// bool comp(const Book &book, const std::string &ISBN, const std::string &name,
-//           const std::string &author, const std::string &key);
 void ShowBook();
 void ShowFinance();
 void Show() {
@@ -153,7 +151,6 @@ bool CheckUserID(const std::string &str) {
   }
   return true;
 }
-bool CheckPassward(const std::string &str) { return CheckUserID(str); }
 bool CheckPrivilege(const std::string &str) {
   int sz = str.size();
   if (sz > 1 || sz == 0) {
@@ -199,7 +196,6 @@ bool CheckBookName(const std::string &str) {
   }
   return true;
 }
-bool CheckAuthor(const std::string &str) { return CheckBookName(str); }
 bool CheckKeyword(const std::string &str) {
   int sz = str.size();
   if (sz > 60 || sz == 0 || str[0] == '|' || str[sz - 1] == '|') {
@@ -697,7 +693,7 @@ void Modify() {
   GetBookInformation(ISBN, name, author, key, price_str, 1);
   if (ISBN != "" && !CheckISBN(ISBN)) {
     throw Invalid();
-  } else if (name != "" && !CheckUsername(name)) {
+  } else if (name != "" && !CheckBookName(name)) {
     throw Invalid();
   } else if (author != "" && !CheckAuthor(author)) {
     throw Invalid();
@@ -770,19 +766,6 @@ bool FindKeyword(const Book &book, const std::string &key) {
   }
   return (tmp == key);
 }
-// bool comp(const Book &book, const std::string &ISBN, const std::string &name,
-//           const std::string &author, const std::string &key) {
-//   if (ISBN != "" && strcmp(book.ISBN, ISBN.data()) != 0) {
-//     return false;
-//   } else if (name != "" && strcmp(book.book_name, name.data()) != 0) {
-//     return false;
-//   } else if (author != "" && strcmp(book.auther, author.data()) != 0) {
-//     return false;
-//   } else if (key != "" && FindKeyword(book, key) == 0) {
-//     return false;
-//   }
-//   return true;
-// }
 void ShowBook() {
   if (login_stack.empty()) {
     throw Invalid();
@@ -791,7 +774,7 @@ void ShowBook() {
   GetBookInformation(ISBN, name, author, key, price_str, 2);
   if (ISBN != "" && !CheckISBN(ISBN)) {
     throw Invalid();
-  } else if (name != "" && !CheckUsername(name)) {
+  } else if (name != "" && !CheckBookName(name)) {
     throw Invalid();
   } else if (author != "" && !CheckAuthor(author)) {
     throw Invalid();
@@ -818,9 +801,6 @@ void ShowBook() {
   for (int index : pos) {
     Book book;
     book_data.read(book, index);
-    // if (comp(book, ISBN, name, author, key)) {
-    //   ans.push_back(book);
-    // }
     ans.push_back(book);
   }
   std::sort(ans.begin(), ans.end(), cmpISBN);
