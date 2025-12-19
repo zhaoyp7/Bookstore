@@ -241,6 +241,8 @@ bool CheckQuantity(const std::string &str) {
   int sz = str.size();
   if (sz > 10 || sz == 0) {
     return false;
+  } else if (sz > 1 && str[0] == '0') {
+    return false;
   }
   long long sum = 0;
   for (int i = 0; i < sz; i++) {
@@ -271,6 +273,8 @@ bool CheckPrice(const std::string &str) {
   if (dot_num > 1) {
     return false;
   } else if (dot_num == 1 && (dot_pos == 0 || dot_pos == sz - 1)) {
+    return false;
+  } else if (dot_num == 1 && dot_pos != 1 && str[0] == '0') {
     return false;
   }
   return true;
