@@ -1,13 +1,10 @@
 #include "command.hpp"
 
 bool Command::read() {
-  std::getline(std::cin, str);
-  if (std::cin.eof()) {
-    return false;
-  }
+  bool res = (bool)std::getline(std::cin, str);
   sz = str.size();
   pos = 0;
-  return true;
+  return res;
 }
 std::string Command::getstr() {
   std::string ans = "";
