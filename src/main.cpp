@@ -52,13 +52,13 @@ double StringToDouble(const std::string &str);
 int StringToInt(const std::string &str);
 
 void init();
+void Exit();
 void Su();
 void Logout();
 void Register();
 void Passwd();
 void Useradd();
 void Delete();
-
 void Buy();
 void Select();
 void Import();
@@ -114,6 +114,7 @@ int main() {
       } else if (op == "import") {
         Import();
       } else if (op == "quit" || op == "exit") {
+        Exit();
         break;
       } else if (op == "") {
         // DO NOTHING!
@@ -321,6 +322,11 @@ void init() {
     index = finance_data.write(tmp);
     finance_data.write_info(index, 1);
     finance_data.write_info(1, 2);
+  }
+}
+void Exit() {
+  if (command.getstr() != "") {
+    throw Invalid();
   }
 }
 void Su() {
