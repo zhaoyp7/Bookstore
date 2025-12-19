@@ -62,331 +62,24 @@ void Delete();
 void Buy();
 void Select();
 void Import();
-void CheckParameter(std::string &str, int &type) {
-  if (str[0] != '-') {
-    type = -1;
-    return;
-  }
-  int pos = -1, len = str.size();
-  std::string op = "";
-  for (int i = 1; i < len; i++) {
-    if (str[i] == '=') {
-      pos = i;
-      break;
-    } else {
-      op += str[i];
-    }
-  }
-  if (pos == -1 || pos == len - 1) {
-    type = -1;
-    return;
-  }
-  if (op == "ISBN") {
-    type = 1;
-  } else if (op == "name") {
-    type = 2;
-  } else if (op == "author") {
-    type = 3;
-  } else if (op == "keyword") {
-    type = 4;
-  } else if (op == "price") {
-    type = 5;
-  } else {
-    type = -1;
-    return;
-  }
-  int l = pos + 1, r = len - 1;
-  if (type >= 2 && type <= 4) {
-    if (str[l] != '\"' || str[r] != '\"') {
-      type = -1;
-      return;
-    } else {
-      l++;
-      r--;
-    }
-  }
-  std::string para = "";
-  for (int i = l; i <= r; i++) {
-    para += str[i];
-  }
-  if (para == "") {
-    type = -1;
-    return;
-  }
-  str = para;
-}
-void UpdateKeyBlock(const std::string &str, int index, int op) {
-  int sz = str.size();
-  std::vector<std::string> key;
-  std::string tmp = "";
-  for (int i = 0; i < sz; i++) {
-    if (str[i] == '|') {
-      key.push_back(tmp);
-      tmp = "";
-    } else {
-      tmp += str[i];
-    }
-  }
-  key.push_back(tmp);
-  int key_num = key.size();
-  std::sort(key.begin(), key.end());
-  // for (std::string str : key) {
-  //   std::cout << "key = " << str << '\n';
-  // }
-  for (int i = 0; i < key_num; i++) {
-    // puts("bbbbb");
-    // std::cout << "key = " << key[i] << '\n';
-    if (op == 1) {
-      book_key_block.insert(key[i].data(), index);
-    } else {
-      book_key_block.del(key[i].data(), index);
-    }
-  }
-}
+void CheckParameter(std::string &str, int &type);
+void UpdateKeyBlock(const std::string &str, int index, int op);
 void GetBookInformation(std::string &ISBN, std::string &name,
                         std::string &author, std::string &key,
-                        std::string &price_str) {
-  std::string tmp = command.getstr();
-  std::vector<std::string> parameter;
-  while (tmp != "") {
-    parameter.push_back(tmp);
-    tmp = command.getstr();
-  }
-  for (std::string str : parameter) {
-    // std::cout << "str = " << str << '\n';
-    int type;
-    CheckParameter(str, type);
-    if (type <= 0 || type >= 6) {
-      throw Invalid();
-    } else if (type == 1) {
-      (ISBN != "") ? (throw Invalid()) : (ISBN = str);
-    } else if (type == 2) {
-      (name != "") ? (throw Invalid()) : (name = str);
-    } else if (type == 3) {
-      (author != "") ? (throw Invalid()) : (author = str);
-    } else if (type == 4) {
-      (key != "") ? (throw Invalid()) : (key = str);
-    } else if (type == 5) {
-      (price_str != "") ? (throw Invalid()) : (price_str = str);
-    }
-  }
-}
-void Modify() {
-  if (login_stack.empty() || now_user.privilege < 3) {
-    throw Invalid();
-  }
-  // if (now_user.selected_ISBN[0] == '\0') {
-  if (now_user.selected_index == -1) {
-    throw Invalid();
-  }
-  std::string ISBN = "", name = "", author = "", key = "", price_str = "";
-  GetBookInformation(ISBN, name, author, key, price_str);
-  // std::cout << "ISBN = " << ISBN << '\n';
-  // std::cout << "name = " << name << '\n';
-  // std::cout << "author = " << author << '\n';
-  // std::cout << "key = " << key << '\n';
-  // std::cout << "price_str = " << price_str << '\n';
+                        std::string &price_str, int op);
+void Modify();
 
-  if (ISBN != "" && !CheckISBN(ISBN)) {
-    throw Invalid();
-  } else if (name != "" && !CheckUsername(name)) {
-    throw Invalid();
-  } else if (author != "" && !CheckAuthor(author)) {
-    throw Invalid();
-  } else if (key != "" && !CheckKeyword(key)) {
-    throw Invalid();
-  } else if (price_str != "" && !CheckPrice(price_str)) {
-    throw Invalid();
-  }
-  if (ISBN != "" && book_ISBN_block.find(ISBN.data()).size()) {
-    throw Invalid();
-  }
-  // std::cout << "find ISBN = " << now_user.selected_ISBN << '\n';
-  // std::vector<int> pos = book_ISBN_block.find(now_user.selected_ISBN);
-  // if (pos.empty()) {
-  //   puts("EMPTY!!!");
-  // }
-  // int index = pos[0];
-  int index = now_user.selected_index;
-  // printf("index = %d\n",index);
-  Book book;
-  book_data.read(book, index);
-  if (book.ISBN[0] != '\0' && ISBN != "") {
-    book_ISBN_block.del(book.ISBN, index);
-  }
-  if (book.book_name[0] != '\0' && name != "") {
-    book_name_block.del(book.book_name, index);
-  }
-  if (book.auther[0] != '\0' && author != "") {
-    book_author_block.del(book.auther, index);
-  }
-  if (book.keyword[0] != '\0' && key != "") {
-    UpdateKeyBlock(book.keyword, index, -1);
-  }
-  if (ISBN != "") {
-    strncpy(book.ISBN, ISBN.data(), book.ISBN_LEN);
-    book_ISBN_block.insert(book.ISBN, index);
-    // strncpy(now_user.selected_ISBN, book.ISBN, book.ISBN_LEN);
-  }
-  if (name != "") {
-    strncpy(book.book_name, name.data(), book.MAX_LEN);
-    book_name_block.insert(book.book_name, index);
-  }
-  if (author != "") {
-    strncpy(book.auther, author.data(), book.MAX_LEN);
-    book_author_block.insert(book.auther, index);
-  }
-  if (key != "") {
-    // std::cout << "new key = " << key << '\n';
-    strncpy(book.keyword, key.data(), book.MAX_LEN);
-    UpdateKeyBlock(book.keyword, index, 1);
-  }
-  if (price_str != "") {
-    double price = StringToDouble(price_str);
-    book.price = price;
-  }
-  book_data.update(book, index);
-}
-int KeywordNumber(const std::string &str) {
-  int cnt = 1, sz = str.size();
-  for (int i = 0; i < sz; i++) {
-    if (str[i] == '|') {
-      cnt++;
-    }
-  }
-  return cnt;
-}
-bool FindKeyword(const Book &book, const std::string &key) {
-  std::string str = book.keyword;
-  int sz = str.size();
-  std::string tmp = "";
-  for (int i = 0; i < sz; i++) {
-    if (str[i] == '|' && tmp == key) {
-      return true;
-    } else if (str[i] == '|') {
-      tmp = "";
-    } else {
-      tmp += str[i];
-    }
-  }
-  return (tmp == key);
-}
+int KeywordNumber(const std::string &str);
+bool FindKeyword(const Book &book, const std::string &key);
 bool comp(const Book &book, const std::string &ISBN, const std::string &name,
-          const std::string &author, const std::string &key) {
-  if (ISBN != "" && strcmp(book.ISBN, ISBN.data()) != 0) {
-    return false;
-  } else if (name != "" && strcmp(book.book_name, name.data()) != 0) {
-    return false;
-  } else if (author != "" && strcmp(book.auther, author.data()) != 0) {
-    return false;
-  } else if (key != "" && FindKeyword(book, key) == 0) {
-    // std::cout << "key = " << book.keyword << '\n';
-    return false;
-  }
-  return true;
-}
-void ShowBook() {
-  // puts("SHOW BOOK");
-  if (login_stack.empty()) {
-    throw Invalid();
-  }
-  std::string ISBN = "", name = "", author = "", key = "", price_str = "";
-  GetBookInformation(ISBN, name, author, key, price_str);
-  // std::cout << "ISBN = " << ISBN << '\n';
-  // std::cout << "name = " << name << '\n';
-  // std::cout << "author = " << author << '\n';
-  // std::cout << "key = " << key << '\n';
-  if (ISBN != "" && !CheckISBN(ISBN)) {
-    throw Invalid();
-  } else if (name != "" && !CheckUsername(name)) {
-    throw Invalid();
-  } else if (author != "" && !CheckAuthor(author)) {
-    throw Invalid();
-  } else if (key != "" && !CheckKeyword(key)) {
-    throw Invalid();
-  } else if (price_str != "" && !CheckPrice(price_str)) {
-    throw Invalid();
-  } else if (key != "" && KeywordNumber(key) > 1) {
-    throw Invalid();
-  }
-  std::vector<int> pos;
-  if (ISBN != "") {
-    pos = book_ISBN_block.find(ISBN.data());
-  } else if (name != "") {
-    pos = book_name_block.find(name.data());
-  } else if (author != "") {
-    pos = book_author_block.find(author.data());
-  } else if (key != "") {
-    pos = book_key_block.find(key.data());
-  } else {
-    pos = book_ISBN_block.findall();
-  }
-  // if (pos.empty()) {
-  //   puts("EMPTY!");
-  // }
-  std::vector<Book> ans;
-  for (int index : pos) {
-    Book book;
-    book_data.read(book, index);
-    if (comp(book, ISBN, name, author, key)) {
-      ans.push_back(book);
-    }
-  }
-  std::sort(ans.begin(), ans.end(), cmpISBN);
-  for (Book book : ans) {
-    std::cout << book.ISBN << '\t' << book.book_name << '\t' << book.auther
-              << '\t' << book.keyword;
-    printf("\t%.2lf\t", book.price);
-    std::cout << book.stock << '\n';
-  }
-  if (ans.empty()) {
-    puts("");
-  }
-}
-void ShowFinance() {
-  if (login_stack.empty() || now_user.privilege < 7) {
-    throw Invalid();
-  }
-  std::string count_str = command.getstr();
-  if (count_str != "" && !CheckCount(count_str)) {
-    throw Invalid();
-  }
-  if (command.getstr() != "") {
-    throw Invalid();
-  }
-  int total_count, count;
-  double income = 0, expenditure = 0;
-  finance_data.get_info(total_count, 2);
-  if (count_str == "") {
-    count = total_count;
-  } else {
-    count = StringToInt(count_str);
-  }
-  if (count > total_count) {
-    throw Invalid();
-  }
-  if (count_str != "" && count == 0) {
-    puts("");
-    return;
-  }
-  // printf("count = %d\n",count);
-  int index;
-  finance_data.get_info(index, 1);
-  Finance tmp;
-  while (count--) {
-    finance_data.read(tmp, index);
-    income += tmp.income;
-    expenditure += tmp.expenditure;
-    index = tmp.pre;
-  }
-  printf("+ %.2lf - %.2lf\n", income, expenditure);
-}
+          const std::string &author, const std::string &key);
+void ShowBook();
+void ShowFinance();
 void Show() {
   std::string tmp = command.getstr();
   if (tmp == "") {
     ShowBook();
   } else if (tmp == "finance") {
-    // command.moveback();
     ShowFinance();
   } else {
     command.moveback();
@@ -874,4 +567,299 @@ void Import() {
   finance_data.get_info(count, 2);
   count++;
   finance_data.write_info(count, 2);
+}
+void CheckParameter(std::string &str, int &type) {
+  if (str[0] != '-') {
+    type = -1;
+    return;
+  }
+  int pos = -1, len = str.size();
+  std::string op = "";
+  for (int i = 1; i < len; i++) {
+    if (str[i] == '=') {
+      pos = i;
+      break;
+    } else {
+      op += str[i];
+    }
+  }
+  if (pos == -1 || pos == len - 1) {
+    type = -1;
+    return;
+  }
+  if (op == "ISBN") {
+    type = 1;
+  } else if (op == "name") {
+    type = 2;
+  } else if (op == "author") {
+    type = 3;
+  } else if (op == "keyword") {
+    type = 4;
+  } else if (op == "price") {
+    type = 5;
+  } else {
+    type = -1;
+    return;
+  }
+  int l = pos + 1, r = len - 1;
+  if (type >= 2 && type <= 4) {
+    if (str[l] != '\"' || str[r] != '\"') {
+      type = -1;
+      return;
+    } else {
+      l++;
+      r--;
+    }
+  }
+  std::string para = "";
+  for (int i = l; i <= r; i++) {
+    para += str[i];
+  }
+  if (para == "") {
+    type = -1;
+    return;
+  }
+  str = para;
+}
+void UpdateKeyBlock(const std::string &str, int index, int op) {
+  int sz = str.size();
+  std::vector<std::string> key;
+  std::string tmp = "";
+  for (int i = 0; i < sz; i++) {
+    if (str[i] == '|') {
+      key.push_back(tmp);
+      tmp = "";
+    } else {
+      tmp += str[i];
+    }
+  }
+  key.push_back(tmp);
+  int key_num = key.size();
+  std::sort(key.begin(), key.end());
+  for (int i = 0; i < key_num; i++) {
+    if (op == 1) {
+      book_key_block.insert(key[i].data(), index);
+    } else {
+      book_key_block.del(key[i].data(), index);
+    }
+  }
+}
+void GetBookInformation(std::string &ISBN, std::string &name,
+                        std::string &author, std::string &key,
+                        std::string &price_str, int op) {
+  // op = 1 : Modify
+  // op = 2 : Show
+  std::string tmp = command.getstr();
+  std::vector<std::string> parameter;
+  while (tmp != "") {
+    parameter.push_back(tmp);
+    tmp = command.getstr();
+  }
+  if (op == 1 && parameter.empty()) {
+    throw Invalid();
+  }
+  int last_type = -1;
+  for (std::string str : parameter) {
+    int type;
+    CheckParameter(str, type);
+    if (type <= 0 || type >= 6) {
+      throw Invalid();
+    } else if (type == 1) {
+      (ISBN != "") ? (throw Invalid()) : (ISBN = str);
+    } else if (type == 2) {
+      (name != "") ? (throw Invalid()) : (name = str);
+    } else if (type == 3) {
+      (author != "") ? (throw Invalid()) : (author = str);
+    } else if (type == 4) {
+      (key != "") ? (throw Invalid()) : (key = str);
+    } else if (type == 5) {
+      (price_str != "") ? (throw Invalid()) : (price_str = str);
+    }
+    if (op == 2 &&  type <= last_type) {
+      throw Invalid();
+    }
+    last_type = type;
+  }
+}
+void Modify() {
+  if (login_stack.empty() || now_user.privilege < 3) {
+    throw Invalid();
+  } else if (now_user.selected_index == -1) {
+    throw Invalid();
+  }
+  std::string ISBN = "", name = "", author = "", key = "", price_str = "";
+  GetBookInformation(ISBN, name, author, key, price_str, 1);
+  if (ISBN != "" && !CheckISBN(ISBN)) {
+    throw Invalid();
+  } else if (name != "" && !CheckUsername(name)) {
+    throw Invalid();
+  } else if (author != "" && !CheckAuthor(author)) {
+    throw Invalid();
+  } else if (key != "" && !CheckKeyword(key)) {
+    throw Invalid();
+  } else if (price_str != "" && !CheckPrice(price_str)) {
+    throw Invalid();
+  }
+  if (ISBN != "" && book_ISBN_block.find(ISBN.data()).size()) {
+    throw Invalid();
+  }
+  int index = now_user.selected_index;
+  Book book;
+  book_data.read(book, index);
+  if (book.ISBN[0] != '\0' && ISBN != "") {
+    book_ISBN_block.del(book.ISBN, index);
+  }
+  if (book.book_name[0] != '\0' && name != "") {
+    book_name_block.del(book.book_name, index);
+  }
+  if (book.auther[0] != '\0' && author != "") {
+    book_author_block.del(book.auther, index);
+  }
+  if (book.keyword[0] != '\0' && key != "") {
+    UpdateKeyBlock(book.keyword, index, -1);
+  }
+  if (ISBN != "") {
+    strncpy(book.ISBN, ISBN.data(), book.ISBN_LEN);
+    book_ISBN_block.insert(book.ISBN, index);
+  }
+  if (name != "") {
+    strncpy(book.book_name, name.data(), book.MAX_LEN);
+    book_name_block.insert(book.book_name, index);
+  }
+  if (author != "") {
+    strncpy(book.auther, author.data(), book.MAX_LEN);
+    book_author_block.insert(book.auther, index);
+  }
+  if (key != "") {
+    strncpy(book.keyword, key.data(), book.MAX_LEN);
+    UpdateKeyBlock(book.keyword, index, 1);
+  }
+  if (price_str != "") {
+    double price = StringToDouble(price_str);
+    book.price = price;
+  }
+  book_data.update(book, index);
+}
+int KeywordNumber(const std::string &str) {
+  int cnt = 1, sz = str.size();
+  for (int i = 0; i < sz; i++) {
+    if (str[i] == '|') {
+      cnt++;
+    }
+  }
+  return cnt;
+}
+bool FindKeyword(const Book &book, const std::string &key) {
+  std::string str = book.keyword;
+  int sz = str.size();
+  std::string tmp = "";
+  for (int i = 0; i < sz; i++) {
+    if (str[i] == '|' && tmp == key) {
+      return true;
+    } else if (str[i] == '|') {
+      tmp = "";
+    } else {
+      tmp += str[i];
+    }
+  }
+  return (tmp == key);
+}
+bool comp(const Book &book, const std::string &ISBN, const std::string &name,
+          const std::string &author, const std::string &key) {
+  if (ISBN != "" && strcmp(book.ISBN, ISBN.data()) != 0) {
+    return false;
+  } else if (name != "" && strcmp(book.book_name, name.data()) != 0) {
+    return false;
+  } else if (author != "" && strcmp(book.auther, author.data()) != 0) {
+    return false;
+  } else if (key != "" && FindKeyword(book, key) == 0) {
+    return false;
+  }
+  return true;
+}
+void ShowBook() {
+  if (login_stack.empty()) {
+    throw Invalid();
+  }
+  std::string ISBN = "", name = "", author = "", key = "", price_str = "";
+  GetBookInformation(ISBN, name, author, key, price_str, 2);
+  if (ISBN != "" && !CheckISBN(ISBN)) {
+    throw Invalid();
+  } else if (name != "" && !CheckUsername(name)) {
+    throw Invalid();
+  } else if (author != "" && !CheckAuthor(author)) {
+    throw Invalid();
+  } else if (key != "" && !CheckKeyword(key)) {
+    throw Invalid();
+  } else if (price_str != "" && !CheckPrice(price_str)) {
+    throw Invalid();
+  } else if (key != "" && KeywordNumber(key) > 1) {
+    throw Invalid();
+  }
+  std::vector<int> pos;
+  if (ISBN != "") {
+    pos = book_ISBN_block.find(ISBN.data());
+  } else if (name != "") {
+    pos = book_name_block.find(name.data());
+  } else if (author != "") {
+    pos = book_author_block.find(author.data());
+  } else if (key != "") {
+    pos = book_key_block.find(key.data());
+  } else {
+    pos = book_ISBN_block.findall();
+  }
+  std::vector<Book> ans;
+  for (int index : pos) {
+    Book book;
+    book_data.read(book, index);
+    if (comp(book, ISBN, name, author, key)) {
+      ans.push_back(book);
+    }
+  }
+  std::sort(ans.begin(), ans.end(), cmpISBN);
+  for (Book book : ans) {
+    std::cout << book.ISBN << '\t' << book.book_name << '\t' << book.auther
+              << '\t' << book.keyword;
+    printf("\t%.2lf\t", book.price);
+    std::cout << book.stock << '\n';
+  }
+  if (ans.empty()) {
+    puts("");
+  }
+}
+void ShowFinance() {
+  if (login_stack.empty() || now_user.privilege < 7) {
+    throw Invalid();
+  }
+  std::string count_str = command.getstr();
+  if (count_str != "" && !CheckCount(count_str)) {
+    throw Invalid();
+  } else if (command.getstr() != "") {
+    throw Invalid();
+  }
+  int total_count, count;
+  double income = 0, expenditure = 0;
+  finance_data.get_info(total_count, 2);
+  if (count_str == "") {
+    count = total_count;
+  } else {
+    count = StringToInt(count_str);
+  }
+  if (count > total_count) {
+    throw Invalid();
+  }
+  if (count_str != "" && count == 0) {
+    puts("");
+    return;
+  }
+  int index;
+  finance_data.get_info(index, 1);
+  Finance tmp;
+  while (count--) {
+    finance_data.read(tmp, index);
+    income += tmp.income;
+    expenditure += tmp.expenditure;
+    index = tmp.pre;
+  }
+  printf("+ %.2lf - %.2lf\n", income, expenditure);
 }
