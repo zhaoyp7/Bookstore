@@ -40,99 +40,12 @@ bool CheckUserID(const std::string &str);
 bool CheckPassward(const std::string &str);
 bool CheckPrivilege(const std::string &str);
 bool CheckUsername(const std::string &str);
-bool CheckISBN(const std::string &str) {
-  int sz = str.size();
-  if (sz > 20 || sz == 0) {
-    return false;
-  }
-  return true;
-}
-bool CheckBookName(const std::string &str) {
-  int sz = str.size();
-  if (sz > 60 || sz == 0) {
-    return false;
-  }
-  for (int i = 0; i < sz; i++) {
-    if (str[i] == '\"') {
-      return false;
-    }
-  }
-  return true;
-}
-bool CheckAuthor(const std::string &str) { return CheckBookName(str); }
-bool CheckKeyword(const std::string &str) {
-  int sz = str.size();
-  if (sz > 60 || sz == 0 || str[0] == '|' || str[sz - 1] == '|') {
-    return false;
-  }
-  for (int i = 0; i < sz; i++) {
-    if (str[i] == '\"') {
-      return false;
-    }
-  }
-  std::vector<std::string> key;
-  std::string tmp = "";
-  for (int i = 0; i < sz; i++) {
-    if (str[i] == '|') {
-      key.push_back(tmp);
-      tmp = "";
-    } else {
-      tmp += str[i];
-    }
-  }
-  key.push_back(tmp);
-  int key_num = key.size();
-  std::sort(key.begin(), key.end());
-  for (int i = 0; i < key_num; i++) {
-    if (key[i] == "") {
-      return false;
-    }
-  }
-  for (int i = 0; i + 1 < key_num; i++) {
-    if (key[i] == key[i + 1]) {
-      return false;
-    }
-  }
-  return true;
-}
-bool CheckQuantity(const std::string &str) {
-  int sz = str.size();
-  if (sz > 10 || sz == 0) {
-    return false;
-  }
-  long long sum = 0;
-  for (int i = 0; i < sz; i++) {
-    if (str[i] < '0' || str[i] > '9') {
-      return false;
-    }
-    sum = sum * 10 + str[i] - '0';
-  }
-  if (sum > 2147483647) {
-    return false;
-  }
-  return true;
-}
-bool CheckPrice(const std::string &str) {
-  int sz = str.size();
-  if (sz > 13 || sz == 0) {
-    return false;
-  }
-  int dot_num = 0, dot_pos = 0;
-  for (int i = 0; i < sz; i++) {
-    if (str[i] == '.') {
-      dot_num++;
-      dot_pos = i;
-    } else if (str[i] < '0' || str[i] > '9') {
-      return false;
-    }
-  }
-  if (dot_num > 1) {
-    return false;
-  } else if (dot_num == 1 && (dot_pos == 0 || dot_pos == sz - 1)) {
-    return false;
-  }
-  return true;
-}
+bool CheckISBN(const std::string &str);
+bool CheckBookName(const std::string &str);
+bool CheckAuthor(const std::string &str);
+bool CheckKeyword(const std::string &str);
+bool CheckQuantity(const std::string &str);
+bool CheckPrice(const std::string &str);
 bool CheckCost(const std::string &str) { return CheckPrice(str); }
 bool CheckCount(const std::string &str) { return CheckQuantity(str); }
 double StringToDouble(const std::string &str) {
@@ -695,11 +608,113 @@ bool CheckUsername(const std::string &str) {
   if (sz == 0) {
     return false;
   }
-  // for (int i = 0; i < sz; i++) {
-  //   if (str[i] < 32 || str[i] > 126) {
-  //     return false;
-  //   }
-  // }
+  for (int i = 0; i < sz; i++) {
+    if (str[i] < 32 || str[i] > 126) {
+      return false;
+    }
+  }
+  return true;
+}
+bool CheckISBN(const std::string &str) {
+  int sz = str.size();
+  if (sz > 20 || sz == 0) {
+    return false;
+  }
+  for (int i = 0; i < sz; i++) {
+    if (str[i] < 32 || str[i] > 126) {
+      return false;
+    }
+  }
+  return true;
+}
+bool CheckBookName(const std::string &str) {
+  int sz = str.size();
+  if (sz > 60 || sz == 0) {
+    return false;
+  }
+  for (int i = 0; i < sz; i++) {
+    if (str[i] == '\"') {
+      return false;
+    } else if (str[i] < 32 || str[i] > 126) {
+      return false;
+    }
+  }
+  return true;
+}
+bool CheckAuthor(const std::string &str) { return CheckBookName(str); }
+bool CheckKeyword(const std::string &str) {
+  int sz = str.size();
+  if (sz > 60 || sz == 0 || str[0] == '|' || str[sz - 1] == '|') {
+    return false;
+  }
+  for (int i = 0; i < sz; i++) {
+    if (str[i] == '\"') {
+      return false;
+    } else if (str[i] < 32 || str[i] > 126) {
+      return false;
+    }
+  }
+  std::vector<std::string> key;
+  std::string tmp = "";
+  for (int i = 0; i < sz; i++) {
+    if (str[i] == '|') {
+      key.push_back(tmp);
+      tmp = "";
+    } else {
+      tmp += str[i];
+    }
+  }
+  key.push_back(tmp);
+  int key_num = key.size();
+  std::sort(key.begin(), key.end());
+  for (int i = 0; i < key_num; i++) {
+    if (key[i] == "") {
+      return false;
+    }
+  }
+  for (int i = 0; i + 1 < key_num; i++) {
+    if (key[i] == key[i + 1]) {
+      return false;
+    }
+  }
+  return true;
+}
+bool CheckQuantity(const std::string &str) {
+  int sz = str.size();
+  if (sz > 10 || sz == 0) {
+    return false;
+  }
+  long long sum = 0;
+  for (int i = 0; i < sz; i++) {
+    if (str[i] < '0' || str[i] > '9') {
+      return false;
+    }
+    sum = sum * 10 + str[i] - '0';
+  }
+  if (sum > 2147483647) {
+    return false;
+  }
+  return true;
+}
+bool CheckPrice(const std::string &str) {
+  int sz = str.size();
+  if (sz > 13 || sz == 0) {
+    return false;
+  }
+  int dot_num = 0, dot_pos = 0;
+  for (int i = 0; i < sz; i++) {
+    if (str[i] == '.') {
+      dot_num++;
+      dot_pos = i;
+    } else if (str[i] < '0' || str[i] > '9') {
+      return false;
+    }
+  }
+  if (dot_num > 1) {
+    return false;
+  } else if (dot_num == 1 && (dot_pos == 0 || dot_pos == sz - 1)) {
+    return false;
+  }
   return true;
 }
 
