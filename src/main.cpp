@@ -71,8 +71,8 @@ void Modify();
 
 int KeywordNumber(const std::string &str);
 bool FindKeyword(const Book &book, const std::string &key);
-bool comp(const Book &book, const std::string &ISBN, const std::string &name,
-          const std::string &author, const std::string &key);
+// bool comp(const Book &book, const std::string &ISBN, const std::string &name,
+//           const std::string &author, const std::string &key);
 void ShowBook();
 void ShowFinance();
 void Show() {
@@ -681,7 +681,7 @@ void GetBookInformation(std::string &ISBN, std::string &name,
     } else {
       throw Invalid();
     }
-    if (op == 2 &&  type <= last_type) {
+    if (op == 2 && last_type != -1) {
       throw Invalid();
     }
     last_type = type;
@@ -770,19 +770,19 @@ bool FindKeyword(const Book &book, const std::string &key) {
   }
   return (tmp == key);
 }
-bool comp(const Book &book, const std::string &ISBN, const std::string &name,
-          const std::string &author, const std::string &key) {
-  if (ISBN != "" && strcmp(book.ISBN, ISBN.data()) != 0) {
-    return false;
-  } else if (name != "" && strcmp(book.book_name, name.data()) != 0) {
-    return false;
-  } else if (author != "" && strcmp(book.auther, author.data()) != 0) {
-    return false;
-  } else if (key != "" && FindKeyword(book, key) == 0) {
-    return false;
-  }
-  return true;
-}
+// bool comp(const Book &book, const std::string &ISBN, const std::string &name,
+//           const std::string &author, const std::string &key) {
+//   if (ISBN != "" && strcmp(book.ISBN, ISBN.data()) != 0) {
+//     return false;
+//   } else if (name != "" && strcmp(book.book_name, name.data()) != 0) {
+//     return false;
+//   } else if (author != "" && strcmp(book.auther, author.data()) != 0) {
+//     return false;
+//   } else if (key != "" && FindKeyword(book, key) == 0) {
+//     return false;
+//   }
+//   return true;
+// }
 void ShowBook() {
   if (login_stack.empty()) {
     throw Invalid();
@@ -818,9 +818,10 @@ void ShowBook() {
   for (int index : pos) {
     Book book;
     book_data.read(book, index);
-    if (comp(book, ISBN, name, author, key)) {
-      ans.push_back(book);
-    }
+    // if (comp(book, ISBN, name, author, key)) {
+    //   ans.push_back(book);
+    // }
+    ans.push_back(book);
   }
   std::sort(ans.begin(), ans.end(), cmpISBN);
   for (Book book : ans) {
