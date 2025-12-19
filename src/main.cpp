@@ -19,7 +19,7 @@ BlockLinkedList book_name_block("book_name_block");
 BlockLinkedList book_author_block("book_author_block");
 BlockLinkedList book_key_block("book_key_block");
 
-struct Finance { 
+struct Finance {
   double income, expenditure;
   int pre;
 };
@@ -48,30 +48,8 @@ bool CheckQuantity(const std::string &str);
 bool CheckPrice(const std::string &str);
 bool CheckCost(const std::string &str) { return CheckPrice(str); }
 bool CheckCount(const std::string &str) { return CheckQuantity(str); }
-double StringToDouble(const std::string &str) {
-  int sz = str.size(), flag = 1, pos = 0;
-  double ans = 0, val = 1;
-  bool point = 0;
-  while (pos < sz) {
-    if (str[pos] == '.') {
-      point = 1;
-    } else if (point == 0) {
-      ans = ans * 10 + str[pos] - '0';
-    } else if (point == 1) {
-      val *= 0.1;
-      ans += (str[pos] - '0') * val;
-    }
-    pos++;
-  }
-  return ans;
-}
-int StringToInt(const std::string &str) {
-  int ans = 0, sz = str.size();
-  for (int i = 0; i < sz; i++) {
-    ans = ans * 10 + str[i] - '0';
-  }
-  return ans;
-}
+double StringToDouble(const std::string &str);
+int StringToInt(const std::string &str);
 
 void init();
 void Su();
@@ -81,116 +59,9 @@ void Passwd();
 void Useradd();
 void Delete();
 
-void Buy() {
-  if (login_stack.empty()) {
-    throw Invalid();
-  }
-  std::string ISBN = command.getstr();
-  std::string quantity_str = command.getstr();
-  if (!CheckISBN(ISBN) || !CheckQuantity(quantity_str)) {
-    throw Invalid();
-  }
-  if (command.getstr() != "") {
-    throw Invalid();
-  }
-  int quantity = StringToInt(quantity_str);
-  if (quantity <= 0) {
-    throw Invalid();
-  }
-  std::vector<int> pos = book_ISBN_block.find(ISBN.data());
-  if (pos.empty()) {
-    throw Invalid();
-  }
-  int index = pos[0];
-  Book book;
-  book_data.read(book, index);
-  if (book.stock < quantity) {
-    throw Invalid();
-  }
-  double cost = book.price * quantity;
-  printf("%.2lf\n", cost);
-  book.stock -= quantity;
-  book_data.update(book, index);
-
-  int finance_index;
-  finance_data.get_info(finance_index, 1);
-  Finance tmp = (Finance){cost, 0, finance_index};
-  finance_index = finance_data.write(tmp);
-  finance_data.write_info(finance_index, 1);
-  int count;
-  finance_data.get_info(count, 2);
-  count++;
-  finance_data.write_info(count, 2);
-}
-void Select() {
-  if (login_stack.empty() || now_user.privilege < 3) {
-    throw Invalid();
-  }
-  std::string ISBN = command.getstr();
-  if (!CheckISBN(ISBN)) {
-    throw Invalid();
-  }
-  if (command.getstr() != "") {
-    throw Invalid();
-  }
-  std::vector<int> pos = book_ISBN_block.find(ISBN.data());
-  if (pos.empty()) {
-    // puts("add new book");
-    Book book(ISBN.data());
-    int index = book_data.write(book);
-    // printf("new index = %d\n",index);
-    book_ISBN_block.insert(ISBN.data(), index);
-    // std::cout << "insert ISBN = " << ISBN << '\n';
-    // strncpy(now_user.selected_ISBN, ISBN.data(), now_user.MAX_LEN);
-    now_user.selected_index = index;
-    login_stack.back() = now_user;
-  } else {
-    int index = pos[0];
-    // strncpy(now_user.selected_ISBN, ISBN.data(), now_user.MAX_LEN);
-    now_user.selected_index = index;
-    login_stack.back() = now_user;
-  }
-}
-void Import() {
-  if (login_stack.empty() || now_user.privilege < 3) {
-    throw Invalid();
-  }
-  // if (now_user.selected_ISBN[0] == '\0') {
-  if (now_user.selected_index == -1) {
-    throw Invalid();
-  }
-  std::string quantity_str = command.getstr();
-  std::string cost_str = command.getstr();
-  if (!CheckQuantity(quantity_str) || !CheckCost(cost_str)) {
-    throw Invalid();
-  }
-  if (command.getstr() != "") {
-    throw Invalid();
-  }
-  int quantity = StringToInt(quantity_str);
-  double cost = StringToDouble(cost_str);
-  if (quantity <= 0 || cost <= 0) {
-    throw Invalid();
-  }
-  // std::string ISBN = now_user.selected_ISBN;
-  // std::vector<int> pos = book_ISBN_block.find(ISBN.data());
-  // int index = pos[0];
-  int index = now_user.selected_index;
-  Book book;
-  book_data.read(book, index);
-  book.stock += quantity;
-  book_data.update(book, index);
-
-  int finance_index;
-  finance_data.get_info(finance_index, 1);
-  Finance tmp = (Finance){0, cost, finance_index};
-  finance_index = finance_data.write(tmp);
-  finance_data.write_info(finance_index, 1);
-  int count;
-  finance_data.get_info(count, 2);
-  count++;
-  finance_data.write_info(count, 2);
-}
+void Buy();
+void Select();
+void Import();
 void CheckParameter(std::string &str, int &type) {
   if (str[0] != '-') {
     type = -1;
@@ -228,7 +99,7 @@ void CheckParameter(std::string &str, int &type) {
   if (type >= 2 && type <= 4) {
     if (str[l] != '\"' || str[r] != '\"') {
       type = -1;
-      return ;
+      return;
     } else {
       l++;
       r--;
@@ -240,7 +111,7 @@ void CheckParameter(std::string &str, int &type) {
   }
   if (para == "") {
     type = -1;
-    return ;
+    return;
   }
   str = para;
 }
@@ -272,7 +143,9 @@ void UpdateKeyBlock(const std::string &str, int index, int op) {
     }
   }
 }
-void GetBookInformation(std::string &ISBN, std::string &name, std::string &author, std::string &key, std::string &price_str) {
+void GetBookInformation(std::string &ISBN, std::string &name,
+                        std::string &author, std::string &key,
+                        std::string &price_str) {
   std::string tmp = command.getstr();
   std::vector<std::string> parameter;
   while (tmp != "") {
@@ -398,7 +271,8 @@ bool FindKeyword(const Book &book, const std::string &key) {
   }
   return (tmp == key);
 }
-bool comp(const Book &book, const std::string &ISBN, const std::string &name, const std::string &author, const std::string &key) {
+bool comp(const Book &book, const std::string &ISBN, const std::string &name,
+          const std::string &author, const std::string &key) {
   if (ISBN != "" && strcmp(book.ISBN, ISBN.data()) != 0) {
     return false;
   } else if (name != "" && strcmp(book.book_name, name.data()) != 0) {
@@ -450,7 +324,7 @@ void ShowBook() {
   // if (pos.empty()) {
   //   puts("EMPTY!");
   // }
-  std::vector <Book> ans;
+  std::vector<Book> ans;
   for (int index : pos) {
     Book book;
     book_data.read(book, index);
@@ -460,7 +334,8 @@ void ShowBook() {
   }
   std::sort(ans.begin(), ans.end(), cmpISBN);
   for (Book book : ans) {
-    std::cout << book.ISBN << '\t' << book.book_name << '\t' << book.auther << '\t' << book.keyword;
+    std::cout << book.ISBN << '\t' << book.book_name << '\t' << book.auther
+              << '\t' << book.keyword;
     printf("\t%.2lf\t", book.price);
     std::cout << book.stock << '\n';
   }
@@ -492,7 +367,7 @@ void ShowFinance() {
   }
   if (count_str != "" && count == 0) {
     puts("");
-    return ;
+    return;
   }
   // printf("count = %d\n",count);
   int index;
@@ -562,16 +437,6 @@ int main() {
 }
 
 /*
-1:
-show
-buy
-3:
-select
-modify
-import
-7:
-show
-
 7:
 report finance
 report employee
@@ -718,22 +583,44 @@ bool CheckPrice(const std::string &str) {
   return true;
 }
 
+double StringToDouble(const std::string &str) {
+  int sz = str.size(), flag = 1, pos = 0;
+  double ans = 0, val = 1;
+  bool point = 0;
+  while (pos < sz) {
+    if (str[pos] == '.') {
+      point = 1;
+    } else if (point == 0) {
+      ans = ans * 10 + str[pos] - '0';
+    } else if (point == 1) {
+      val *= 0.1;
+      ans += (str[pos] - '0') * val;
+    }
+    pos++;
+  }
+  return ans;
+}
+int StringToInt(const std::string &str) {
+  int ans = 0, sz = str.size();
+  for (int i = 0; i < sz; i++) {
+    ans = ans * 10 + str[i] - '0';
+  }
+  return ans;
+}
+
 void init() {
   account_data.initialise();
   int index;
   account_data.get_info(index, 1);
-  // printf("root index = %d\n",index);
   if (index == 0) {
-    // puts("build root account");
     Account rt("root", "sjtu", "root", 7);
     index = account_data.write(rt);
-    // printf("index = %d\n",index);
     account_data.write_info(index, 1);
     account_block.insert(((std::string) "root").data(), index);
   }
 
   book_data.initialise();
-  
+
   finance_data.initialise();
   finance_data.get_info(index, 1);
   if (index == 0) {
@@ -748,22 +635,16 @@ void Su() {
   std::string password = command.getstr();
   if (!CheckUserID(userID)) {
     throw Invalid();
-  }
-  // std::cout << userID << ' ' << password << '\n';
-  std::vector<int> pos = account_block.find(userID.data());
-  if (command.getstr() != "") {
+  } else if (command.getstr() != "") {
     throw Invalid();
   }
+  std::vector<int> pos = account_block.find(userID.data());
   if (pos.size() == 0) {
     throw Invalid();
   }
   int index = pos[0];
-  // printf("index = %d\n",index);
   Account user;
   account_data.read(user, index);
-  // return ;
-  // std::cout << user.userID << ' ' << user.password << ' ' << user.privilege
-  // << ' ' << user.username << '\n'; return ;
   if (password != "" && !CheckPassward(password)) {
     throw Invalid();
   } else if (password == "" && now_user.privilege <= user.privilege) {
@@ -801,18 +682,17 @@ void Register() {
   std::string userID = command.getstr();
   std::string password = command.getstr();
   std::string username = command.getstr();
-  std::vector<int> pos = account_block.find(userID.data());
   if (!CheckUserID(userID) || !CheckPassward(password) ||
       !CheckUsername(username)) {
     throw Invalid();
-  }
-  if (command.getstr() != "") {
+  } else if (command.getstr() != "") {
     throw Invalid();
   }
+  std::vector<int> pos = account_block.find(userID.data());
   if (pos.size() != 0) {
     throw Invalid();
   }
-  Account user(userID, password, username);
+  Account user(userID.data(), password.data(), username.data());
   int index = account_data.write(user);
   account_block.insert(userID.data(), index);
 }
@@ -823,11 +703,13 @@ void Passwd() {
   std::string userID = command.getstr();
   std::string now_password = command.getstr();
   std::string new_password = command.getstr();
+  if (!CheckUserID(userID)) {
+    throw Invalid();
+  }
   std::vector<int> pos = account_block.find(userID.data());
   if (command.getstr() != "") {
     throw Invalid();
-  }
-  if (pos.size() == 0) {
+  } else if (pos.size() == 0) {
     throw Invalid();
   }
   int index = pos[0];
@@ -836,11 +718,10 @@ void Passwd() {
   if (now_user.privilege == 7 && new_password == "") {
     new_password = now_password;
     now_password = user.password;
-    if (!CheckUserID(userID) || !CheckPassward(new_password)) {
+    if (!CheckPassward(new_password)) {
       throw Invalid();
     }
-  } else if (!CheckUserID(userID) || !CheckPassward(new_password) ||
-             !CheckPassward(now_password)) {
+  } else if (!CheckPassward(new_password) || !CheckPassward(now_password)) {
     throw Invalid();
   }
   if (now_password != user.password) {
@@ -861,20 +742,16 @@ void Useradd() {
       !CheckUserID(userID) || !CheckUsername(username)) {
     throw Invalid();
   }
-  // std::cout << userID << ' ' << password << ' ' << privilege << ' ' <<
-  // username << '\n';
   int privilege = privilege_str[0] - '0';
+  std::vector<int> pos = account_block.find(userID.data());
   if (command.getstr() != "") {
     throw Invalid();
-  }
-  if (privilege >= now_user.privilege) {
+  } else if (privilege >= now_user.privilege) {
+    throw Invalid();
+  } else if (pos.size() != 0) {
     throw Invalid();
   }
-  std::vector<int> pos = account_block.find(userID.data());
-  if (pos.size() != 0) {
-    throw Invalid();
-  }
-  Account user(userID, password, username, privilege);
+  Account user(userID.data(), password.data(), username.data(), privilege);
   int index = account_data.write(user);
   account_block.insert(userID.data(), index);
 }
@@ -885,11 +762,10 @@ void Delete() {
   std::string userID = command.getstr();
   if (!CheckUserID(userID)) {
     throw Invalid();
-  }
-  std::vector<int> pos = account_block.find(userID.data());
-  if (command.getstr() != "") {
+  } else if (command.getstr() != "") {
     throw Invalid();
   }
+  std::vector<int> pos = account_block.find(userID.data());
   if (pos.size() == 0) {
     throw Invalid();
   }
@@ -902,4 +778,100 @@ void Delete() {
   user.Delete();
   account_block.del(userID.data(), index);
   account_data.Delete(index);
+}
+void Buy() {
+  if (login_stack.empty()) {
+    throw Invalid();
+  }
+  std::string ISBN = command.getstr();
+  std::string quantity_str = command.getstr();
+  if (!CheckISBN(ISBN) || !CheckQuantity(quantity_str)) {
+    throw Invalid();
+  } else if (command.getstr() != "") {
+    throw Invalid();
+  }
+  int quantity = StringToInt(quantity_str);
+  std::vector<int> pos = book_ISBN_block.find(ISBN.data());
+  if (quantity <= 0) {
+    throw Invalid();
+  } else if (pos.empty()) {
+    throw Invalid();
+  }
+  int index = pos[0];
+  Book book;
+  book_data.read(book, index);
+  if (book.stock < quantity) {
+    throw Invalid();
+  }
+  double cost = book.price * quantity;
+  printf("%.2lf\n", cost);
+  book.stock -= quantity;
+  book_data.update(book, index);
+
+  int finance_index;
+  finance_data.get_info(finance_index, 1);
+  Finance tmp = (Finance){cost, 0, finance_index};
+  finance_index = finance_data.write(tmp);
+  finance_data.write_info(finance_index, 1);
+  int count;
+  finance_data.get_info(count, 2);
+  count++;
+  finance_data.write_info(count, 2);
+}
+void Select() {
+  if (login_stack.empty() || now_user.privilege < 3) {
+    throw Invalid();
+  }
+  std::string ISBN = command.getstr();
+  if (!CheckISBN(ISBN)) {
+    throw Invalid();
+  } else if (command.getstr() != "") {
+    throw Invalid();
+  }
+  std::vector<int> pos = book_ISBN_block.find(ISBN.data());
+  if (pos.empty()) {
+    Book book(ISBN.data());
+    int index = book_data.write(book);
+    book_ISBN_block.insert(ISBN.data(), index);
+    now_user.selected_index = index;
+    login_stack.back() = now_user;
+  } else {
+    int index = pos[0];
+    now_user.selected_index = index;
+    login_stack.back() = now_user;
+  }
+}
+void Import() {
+  if (login_stack.empty() || now_user.privilege < 3) {
+    throw Invalid();
+  } else if (now_user.selected_index == -1) {
+    throw Invalid();
+  }
+  std::string quantity_str = command.getstr();
+  std::string cost_str = command.getstr();
+  if (!CheckQuantity(quantity_str) || !CheckCost(cost_str)) {
+    throw Invalid();
+  } else if (command.getstr() != "") {
+    throw Invalid();
+  }
+  int quantity = StringToInt(quantity_str);
+  double cost = StringToDouble(cost_str);
+  if (quantity <= 0 || cost <= 0) {
+    throw Invalid();
+  }
+  int index = now_user.selected_index;
+  Book book;
+  book_data.read(book, index);
+  book.stock += quantity;
+  book_data.update(book, index);
+
+  int finance_index;
+  finance_data.get_info(finance_index, 1);
+  Finance tmp = (Finance){0, cost, finance_index};
+  finance_index = finance_data.write(tmp);
+  finance_data.write_info(finance_index, 1);
+  int count;
+  finance_data.get_info(count, 2);
+  count++;
+  finance_data.write_info(count, 2);
 }
