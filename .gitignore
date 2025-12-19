@@ -8,3 +8,6 @@ code
 *.in
 *.out
 /test_output
+CMakeFiles
+*_block
+*_data
