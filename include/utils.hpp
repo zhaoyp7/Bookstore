@@ -1,8 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <cstring>
 #include <iostream>
-#include <algorithm>
 #include <vector>
 
 bool CheckUserID(const std::string &str);

@@ -1,14 +1,15 @@
 #ifndef BPT_MEMORYRIVER_HPP
 #define BPT_MEMORYRIVER_HPP
 
-#include <fstream>
 #include <cstring>
+#include <fstream>
 
 template <class T, int info_len = 2> class MemoryRiver {
 private:
   std::fstream file;
   std::string file_name;
   int sizeofT = sizeof(T);
+
 public:
   MemoryRiver() = default;
   MemoryRiver(const std::string &file_name) : file_name(file_name) {}
@@ -17,8 +18,7 @@ public:
       file_name = FN;
     std::fstream file_(file_name);
     if (file_.good()) {
-      // puts("file exist");
-      return ;
+      return;
     }
     file.open(file_name, std::ios::app);
     int tmp = 0;
@@ -64,7 +64,7 @@ public:
   }
   void Delete(int index) {
     T tmp;
-    std::memset(&tmp, 0, sizeof(tmp));  
+    std::memset(&tmp, 0, sizeof(tmp));
     file.open(file_name, std::ios::in | std::ios::out);
     file.seekp(index);
     file.write(reinterpret_cast<char *>(&tmp), sizeofT);
@@ -72,4 +72,4 @@ public:
   }
 };
 
-#endif //BPT_MEMORYRIVER_HPP
+#endif // BPT_MEMORYRIVER_HPP

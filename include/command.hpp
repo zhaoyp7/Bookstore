@@ -21,4 +21,5 @@ public:
   bool read();
   std::string getstr();
   void moveback();
+  friend class Bookstore;
 };
