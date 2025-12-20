@@ -21,8 +21,26 @@ BlockLinkedList book_author_block("book_author_block");
 BlockLinkedList book_key_block("book_key_block");
 
 struct Finance {
+  static const int ISBN_LEN = 25;
+  static const int MAX_LEN = 35;
   double income, expenditure;
+  char ISBN[ISBN_LEN];
+  char userID[MAX_LEN];
   int pre;
+  Finance() {
+    income = 0;
+    expenditure = 0;
+    ISBN[0] = '\0';
+    userID[0] = '\0';
+    pre = 0;
+  }
+  Finance(double in, double out, char* isbn, char* id, int pr = 0) {
+    income = in;
+    expenditure = out;
+    strncpy(ISBN, isbn, ISBN_LEN);
+    strncpy(userID, id, MAX_LEN);
+    pre = pr;
+  } 
 };
 MemoryRiver<Finance> finance_data("finance_data");
 // info1: last index
@@ -59,15 +77,55 @@ int KeywordNumber(const std::string &str);
 bool FindKeyword(const Book &book, const std::string &key);
 void ShowBook();
 void ShowFinance();
-void Show() {
-  std::string tmp = command.getstr();
-  if (tmp == "") {
-    ShowBook();
-  } else if (tmp == "finance") {
-    ShowFinance();
+void Show();
+void ReportFinance() {
+  if (login_stack.empty() || now_user.privilege < 7) {
+    throw Invalid();
+  } else if (command.getstr() != "") {
+    throw Invalid();
+  }
+  int count;
+  double all_income = 0, all_expenditure = 0;
+  finance_data.get_info(count, 2);
+  int index;
+  finance_data.get_info(index, 1);
+  Finance tmp;
+  std::vector <Finance> ans;
+  while (count--) {
+    finance_data.read(tmp, index);
+    ans.push_back(tmp);
+    index = tmp.pre;
+  }
+  int sz = ans.size();
+  printf("Order\tOperation\tUserID\tISBN\tIncome\tExpenditure\n");
+  for (int i = sz - 1; i >= 0; i--) {
+    printf("%d\t",sz - i);
+    Finance tmp = ans[i];
+    if (std::abs(tmp.expenditure - 0) < 0.0000001) {
+      printf("Buy");
+    } else {
+      printf("Import");
+    }
+    std::cout << '\t' << tmp.userID << '\t' << tmp.ISBN;
+    printf("\t%.2lf\t%.2lf\n", tmp.income, tmp.expenditure);
+    all_income += tmp.income;
+    all_expenditure += tmp.expenditure;
+  }
+  printf("Totally Income=%.2lf Expenditure=%.2lf\n", all_income, all_expenditure);
+}
+void ReportEmployee() {
+
+}
+void Report() {
+  std::string op = command.getstr();
+  if (command.getstr() != "") {
+    throw Invalid();
+  } else if (op == "finance") {
+    ReportFinance();
+  } else if (op == "employee") {
+    ReportEmployee();
   } else {
-    command.moveback();
-    ShowBook();
+    throw Invalid();
   }
 }
 
@@ -102,6 +160,8 @@ int main() {
       } else if (op == "quit" || op == "exit") {
         Exit();
         break;
+      } else if (op == "report") {
+        Report();
       } else if (op == "") {
         // DO NOTHING!
       } else {
@@ -137,10 +197,11 @@ void init() {
   finance_data.initialise();
   finance_data.get_info(index, 1);
   if (index == 0) {
-    Finance tmp = (Finance){0, 0, 0};
+    // Finance tmp = (Finance){0, 0, 0};
+    Finance tmp;
     index = finance_data.write(tmp);
     finance_data.write_info(index, 1);
-    finance_data.write_info(1, 2);
+    finance_data.write_info(0, 2);
   }
 }
 void Exit() {
@@ -328,7 +389,8 @@ void Buy() {
 
   int finance_index;
   finance_data.get_info(finance_index, 1);
-  Finance tmp = (Finance){cost, 0, finance_index};
+  Finance tmp(cost, 0 , book.ISBN, now_user.userID, finance_index);
+  // = (Finance){cost, 0, finance_index};
   finance_index = finance_data.write(tmp);
   finance_data.write_info(finance_index, 1);
   int count;
@@ -385,7 +447,8 @@ void Import() {
 
   int finance_index;
   finance_data.get_info(finance_index, 1);
-  Finance tmp = (Finance){0, cost, finance_index};
+  // Finance tmp = (Finance){0, cost, finance_index};
+  Finance tmp(0 ,cost , book.ISBN, now_user.userID, finance_index);
   finance_index = finance_data.write(tmp);
   finance_data.write_info(finance_index, 1);
   int count;
@@ -674,4 +737,15 @@ void ShowFinance() {
     index = tmp.pre;
   }
   printf("+ %.2lf - %.2lf\n", income, expenditure);
+}
+void Show() {
+  std::string tmp = command.getstr();
+  if (tmp == "") {
+    ShowBook();
+  } else if (tmp == "finance") {
+    ShowFinance();
+  } else {
+    command.moveback();
+    ShowBook();
+  }
 }
