@@ -3,6 +3,7 @@
 #include "account.hpp"
 #include "book.hpp"
 #include "command.hpp"
+#include "log.hpp"
 #include "utils.hpp"
 #include <algorithm>
 #include <cstring>
@@ -46,6 +47,9 @@ MemoryRiver<Finance> finance_data("finance_data");
 // info1: last index
 // info2: Total Count
 
+MemoryRiver<Log> log_data("log_data");
+// info1: head index
+// info2: last index
 Command command;
 Account now_user;
 std::map<std::string, int> login_state;
@@ -128,6 +132,61 @@ void Report() {
     throw Invalid();
   }
 }
+void ShowLog() {
+  if (login_stack.empty() || now_user.privilege < 7) {
+    throw Invalid();
+  } else if (command.getstr() != "") {
+    throw Invalid();
+  }
+
+  std::vector <Log> ans;
+  int count = 0, index;
+  log_data.get_info(index, 1);
+  Log log;
+  log_data.read(log, index);
+  index = log.nxt;
+  while (index) {
+    log_data.read(log, index);
+    index = log.nxt;
+    std::string op = log.op;
+    std::cout << op << '\t';
+    if (op == "Su") {
+      std::cout << log.user.userID << '\n';
+    } else if (op == "Logout") {
+      std::cout << log.user.userID << '\n';
+    } else if (op == "Register") {
+      std::cout << log.target.userID << '\t' << log.target.privilege << '\t';
+      std::cout << "operator:" << log.user.userID << '\n';
+    } else if (op == "Password") {
+      std::cout << log.target.userID << '\t' << log.password << '\t';
+      std::cout << "operator:" << log.user.userID << '\n';
+    } else if (op == "Useradd") {
+      std::cout << log.target.userID << '\t' << log.target.privilege << '\t';
+      std::cout << "operator:" << log.user.userID << '\n';
+    } else if (op == "Delete") {
+      std::cout << log.target.userID << '\t' ;
+      std::cout << "operator:" << log.user.userID << '\n';
+    } else if (op == "Buy") {
+      std::cout << log.book.ISBN << "\tquantity:" << log.quantity << '\t';
+      std::cout << "operator:" << log.user.userID << '\n';
+    } else if (op == "Import") {
+      std::cout << log.book.ISBN <<"\tquantity:" << log.quantity << "\tcost:" << log.cost << '\t';
+      std::cout << "operator:" << log.user.userID << '\n';
+    } else if (op == "Modify") {
+      puts("");
+      printf("old book :");
+      std::cout << log.old_book.ISBN << '\t' << log.old_book.book_name << '\t' << log.old_book.auther
+              << '\t' << log.old_book.keyword;
+      printf("\t%.2lf\t", log.old_book.price);
+      std::cout << log.old_book.stock << '\n';
+      printf("new book :");
+      std::cout << log.book.ISBN << '\t' << log.book.book_name << '\t' << log.book.auther
+              << '\t' << log.book.keyword;
+      printf("\t%.2lf\t", log.book.price);
+      std::cout << log.book.stock << '\n';
+    }
+  }
+}
 
 int main() {
   init();
@@ -162,7 +221,9 @@ int main() {
         break;
       } else if (op == "report") {
         Report();
-      } else if (op == "") {
+      } else if (op == "log") {
+        ShowLog();
+      }  else if (op == "") {
         // DO NOTHING!
       } else {
         puts("Invalid");
@@ -176,7 +237,6 @@ int main() {
 
 /*
 7:
-report finance
 report employee
 log
 */
@@ -197,11 +257,19 @@ void init() {
   finance_data.initialise();
   finance_data.get_info(index, 1);
   if (index == 0) {
-    // Finance tmp = (Finance){0, 0, 0};
     Finance tmp;
     index = finance_data.write(tmp);
     finance_data.write_info(index, 1);
     finance_data.write_info(0, 2);
+  }
+
+  log_data.initialise();
+  log_data.get_info(index, 1);
+  if (index == 0) {
+    Log tmp;
+    index = log_data.write(tmp);
+    log_data.write_info(index, 1);
+    log_data.write_info(index, 2);
   }
 }
 void Exit() {
@@ -240,6 +308,17 @@ void Su() {
   } else {
     throw Invalid();
   }
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Su").data(), log.MAX_LEN);
+  log.user = now_user;
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 void Logout() {
   if (command.getstr() != "") {
@@ -256,6 +335,17 @@ void Logout() {
   } else {
     now_user = login_stack.back();
   }
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Logout").data(), log.MAX_LEN);
+  log.user = user;
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 void Register() {
   std::string userID = command.getstr();
@@ -274,6 +364,18 @@ void Register() {
   Account user(userID.data(), password.data(), username.data());
   int index = account_data.write(user);
   account_block.insert(userID.data(), index);
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Register").data(), log.MAX_LEN);
+  log.user = now_user;
+  log.target = user;
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 void Passwd() {
   if (login_stack.empty()) {
@@ -308,6 +410,19 @@ void Passwd() {
   }
   user.passwd(new_password.data());
   account_data.update(user, index);
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Passwd").data(), log.MAX_LEN);
+  log.user = now_user;
+  log.target = user;
+  strncpy(log.password, new_password.data(), log.MAX_LEN);
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 void Useradd() {
   if (login_stack.empty() || now_user.privilege < 3) {
@@ -333,6 +448,18 @@ void Useradd() {
   Account user(userID.data(), password.data(), username.data(), privilege);
   int index = account_data.write(user);
   account_block.insert(userID.data(), index);
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Useradd").data(), log.MAX_LEN);
+  log.user = now_user;
+  log.target = user;
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 void Delete() {
   if (login_stack.empty() || now_user.privilege < 7) {
@@ -357,6 +484,18 @@ void Delete() {
   user.Delete();
   account_block.del(userID.data(), index);
   account_data.Delete(index);
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Delete").data(), log.MAX_LEN);
+  log.user = now_user;
+  log.target = user;
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 void Buy() {
   if (login_stack.empty()) {
@@ -397,6 +536,20 @@ void Buy() {
   finance_data.get_info(count, 2);
   count++;
   finance_data.write_info(count, 2);
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Buy").data(), log.MAX_LEN);
+  log.user = now_user;
+  log.book = book;
+  log.quantity = quantity;
+  log.cost = cost;
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 void Select() {
   if (login_stack.empty() || now_user.privilege < 3) {
@@ -447,7 +600,6 @@ void Import() {
 
   int finance_index;
   finance_data.get_info(finance_index, 1);
-  // Finance tmp = (Finance){0, cost, finance_index};
   Finance tmp(0 ,cost , book.ISBN, now_user.userID, finance_index);
   finance_index = finance_data.write(tmp);
   finance_data.write_info(finance_index, 1);
@@ -455,6 +607,20 @@ void Import() {
   finance_data.get_info(count, 2);
   count++;
   finance_data.write_info(count, 2);
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Import").data(), log.MAX_LEN);
+  log.user = now_user;
+  log.book = book;
+  log.quantity = quantity;
+  log.cost = cost;
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 void CheckParameter(std::string &str, int &type) {
   if (str[0] != '-') {
@@ -594,8 +760,9 @@ void Modify() {
     throw Invalid();
   }
   int index = now_user.selected_index;
-  Book book;
+  Book book, old_book;
   book_data.read(book, index);
+  old_book = book;
   if (book.ISBN[0] != '\0' && ISBN != "") {
     book_ISBN_block.del(book.ISBN, index);
   }
@@ -629,6 +796,19 @@ void Modify() {
     book.price = price;
   }
   book_data.update(book, index);
+
+  Log log, las_log;
+  int las_index, new_index;
+  strncpy(log.op ,((std::string)"Modify").data(), log.MAX_LEN);
+  log.user = now_user;
+  log.old_book = old_book;
+  log.book = book;
+  log_data.get_info(las_index, 2);
+  log_data.read(las_log, las_index);
+  new_index = log_data.write(log);
+  las_log.nxt = new_index;
+  log_data.update(las_log, las_index);
+  log_data.write_info(new_index ,2);
 }
 int KeywordNumber(const std::string &str) {
   int cnt = 1, sz = str.size();
