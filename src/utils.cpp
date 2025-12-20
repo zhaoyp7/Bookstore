@@ -57,9 +57,10 @@ bool CheckBookName(const std::string &str) {
   for (int i = 0; i < sz; i++) {
     if (str[i] == '\"') {
       return false;
-    } else if (str[i] < 32 || str[i] > 126) {
-      return false;
     }
+  }
+  if (!CheckLegalString(str.data())) {
+    return false;
   }
   return true;
 }
@@ -72,9 +73,10 @@ bool CheckKeyword(const std::string &str) {
   for (int i = 0; i < sz; i++) {
     if (str[i] == '\"') {
       return false;
-    } else if (str[i] < 32 || str[i] > 126) {
-      return false;
     }
+  }
+  if (!CheckLegalString(str.data())) {
+    return false;
   }
   std::vector<std::string> key;
   std::string tmp = "";
@@ -169,4 +171,71 @@ int StringToInt(const std::string &str) {
     ans = ans * 10 + str[i] - '0';
   }
   return ans;
+}
+
+bool CheckLegalString(const char* str) {
+  int sz = strlen(str);
+  int pos = 0;
+  while (pos < sz) {
+    unsigned char c = str[pos];
+    int len = 0;
+    if (c <= 0x7F) { //0xxxxxxx
+      len = 1;
+    } else if (c >> 5 == 0x06) { // 110xxxxxxx
+      len = 2;
+    } else if (c >> 4 == 0x0E) { // 1110xxxx
+      len = 3;
+    } else if (c >> 3 == 0x0F) { // 11110xxx
+      len = 4;
+    } else {
+      return false;
+    }
+    if (len == 1) {
+      if (str[pos] < 32 || str[pos] > 126) {
+        return false;
+      }
+      pos++;
+      continue;
+    }
+    if (pos + len > sz) {
+      return false;
+    }
+    for (int i = 1; i < len; i++) {
+      unsigned char ch = str[pos + i];
+      if (ch >> 6 != 0x02) {
+        return false;
+      }
+    }
+    unsigned int value = 0;
+    if (len == 2) {
+      value = ((str[pos] & 0x1F) << 6) | (str[pos + 1] & 0x3F);
+    } else if (len == 3) {
+      value = ((str[pos] & 0x0F) << 12) | ((str[pos + 1] & 0x3F) << 6) | (str[pos + 1] & 0x3F);
+    } else if (len == 4) {
+      value = ((str[pos] & 0x07) << 18) | ((str[pos + 1] & 0x3F) << 12) | ((str[pos + 1] & 0x3F) << 6) | (str[pos + 1] & 0x3F);
+    }
+
+    bool flag = 0;
+    flag |= (value >= 0x4E00 && value <= 0x9FFF);
+    flag |= (value >= 0x3400 && value <= 0x4DBF);
+    flag |= (value >= 0x20000 && value <= 0x2A6DF);
+    flag |= (value >= 0x2A700 && value <= 0x2B73F);
+    flag |= (value >= 0x2B740 && value <= 0x2B81F);
+    flag |= (value >= 0x2B820 && value <= 0x2CEAF);
+    flag |= (value >= 0x2CEB0 && value <= 0x2EBEF);
+    flag |= (value >= 0x30000 && value <= 0x3134F);
+    flag |= (value >= 0x31350 && value <= 0x323AF);
+    flag |= (value >= 0xF900 && value <= 0xFAFF);
+    flag |= (value >= 0x2F800 && value <= 0x2FA1F);
+    flag |= (value == 0x00B7);
+    flag |= (value == 0x2014);
+    flag |= (value == 0xFF08);
+    flag |= (value == 0xFF09);
+    flag |= (value == 0xFF1A);
+    if (!flag) {
+      return false;
+    }
+    pos += len;
+  }
+  return true;
 }

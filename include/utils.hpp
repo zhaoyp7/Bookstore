@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+bool CheckLegalString(const char* str);
 bool CheckUserID(const std::string &str);
 bool CheckPassward(const std::string &str);
 bool CheckPrivilege(const std::string &str);
