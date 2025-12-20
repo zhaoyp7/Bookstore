@@ -178,7 +178,7 @@ Online Judge（以下简称 OJ）提交方式为提交 git repo 链接，提交�
 
 ### Bonus
 
-见 [bonus 文档](bonus.md)。
+见 [bonus 文档](Bonus.md)。
 
 ### 扣分
 
