@@ -51,7 +51,7 @@ bool CheckISBN(const std::string &str) {
 }
 bool CheckBookName(const std::string &str) {
   int sz = str.size();
-  if (sz > 60 || sz == 0) {
+  if (sz == 0) {
     return false;
   }
   for (int i = 0; i < sz; i++) {
@@ -59,7 +59,7 @@ bool CheckBookName(const std::string &str) {
       return false;
     }
   }
-  if (!CheckLegalString(str.data())) {
+  if (!CheckLegalString(str.data(), 60)) {
     return false;
   }
   return true;
@@ -67,7 +67,7 @@ bool CheckBookName(const std::string &str) {
 bool CheckAuthor(const std::string &str) { return CheckBookName(str); }
 bool CheckKeyword(const std::string &str) {
   int sz = str.size();
-  if (sz > 60 || sz == 0 || str[0] == '|' || str[sz - 1] == '|') {
+  if (sz == 0 || str[0] == '|' || str[sz - 1] == '|') {
     return false;
   }
   for (int i = 0; i < sz; i++) {
@@ -75,7 +75,7 @@ bool CheckKeyword(const std::string &str) {
       return false;
     }
   }
-  if (!CheckLegalString(str.data())) {
+  if (!CheckLegalString(str.data(), 60)) {
     return false;
   }
   std::vector<std::string> key;
@@ -173,7 +173,7 @@ int StringToInt(const std::string &str) {
   return ans;
 }
 
-bool CheckLegalString(const char* str) {
+bool CheckLegalString(const char* str, int limit_len) {
   int sz = strlen(str);
   int pos = 0;
   while (pos < sz) {
@@ -195,6 +195,7 @@ bool CheckLegalString(const char* str) {
         return false;
       }
       pos++;
+      limit_len--;
       continue;
     }
     if (pos + len > sz) {
@@ -236,6 +237,7 @@ bool CheckLegalString(const char* str) {
       return false;
     }
     pos += len;
+    limit_len--;
   }
-  return true;
+  return (limit_len >= 0);
 }
