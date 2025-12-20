@@ -18,25 +18,35 @@
 
 `main.cpp`：
 
-主程序入口，用于接收指令和控制操作。
+主程序入口。
+
+`bookstore.cpp`:
+
+用于控制操作。
+
+实现了以下功能（账户相关）：登录帐户、注销帐户、注册帐户、修改密码、创建帐户、删除帐户。
+
+实现了以下功能（图书相关）：检索图书、购买图书、选择图书、修改图书信息、图书进货。
+
+实现了以下功能（日志相关）：财务记录查询、生成财务记录报告、生成日志。
+
+`command.cpp`:
+实现了一个指令类，用于指令处理。
 
 `account.cpp`：
 
 实现了一个账户类，用于管理用户信息，包含：账号、密码、用户名、类型等。
 
-实现了以下功能：登录帐户、注销帐户、注册帐户、修改密码、创建帐户、删除帐户。
-
 `book.cpp`：
 
 实现了一个图书类，用于管理图书信息，包含：ISBN 号、书名、作者、关键字、库存量、单价等。
 
-实现了以下功能：检索图书、购买图书、选择图书、修改图书信息、图书进货。
+`utils.cpp`:
+实现了一些工具函数，用于检查指令是否合法，以及验证中文输入。
 
 `log.cpp`：
 
 实现了一个日志类，用于管理业务信息，包含：操作者、操作类型、具体操作参数等。
-
-实现了以下功能：财务记录查询、生成财务记录报告、生成日志。
 
 `BlockLinkedList.cpp`：
 
@@ -73,15 +83,17 @@
 
 ## 数据库设计
 
-- 用户信息文件，使用 `BlockLinkedList` 存储账户类，以账号为关键字排序。
+- 用户信息文件，使用 `MemoryRiver` 存储账户类，具体存储位置被随后文件记录。
+
+- 用户存储位置文件，使用 `BlockLinkedList` 存储账户类，以账号为关键字排序。
 
 - 图书信息文件，使用 `MemoryRiver` 存储图书类，具体存储位置被随后 4 个文件记录。
 
 - 图书存储位置文件（4个）：使用 `BlockLinkedList` 记录每个图书在 `MemoryRiver` 中存储的位置，分别以ISBN 号、书名、作者和关键字为关键字排序。
 
-- 财务记录文件：使用 `MemoryRiver` 存储每一条操作之后的总收入和总支出。
+- 财务记录文件：使用 `MemoryRiver` 存储每一条操作的收入和支出。
 
-- 日志文件：使用 `BlockLinkedList` 存储业务信息，以员工账号为关键字排序。
+- 日志文件：使用 `MemoryRiver` 存储业务信息。
 
 # 类、结构体设计
 
@@ -89,19 +101,27 @@
 
 存储以下信息：`userID`、`password`、`username`、`privilege`。
 
-实现以下函数：`su()`、`logout()`、`register()`、`passwd()`、`useradd()`、`delete()`。
-
 2. 图书类（Book）:
 
 存储以下信息：`ISBN`、`bookName`、`author`、`keyword`、`price`、`stock`。
-
-实现以下函数：`show()`、`buy()`、`select()`、`modify()`、`import()`。
 
 3. 日志类（Log）：
 
 存储以下信息：`UserID`、`operator`、`income`、`expenditure`、`quantity`、`Account`、`Book`。
 
-实现以下函数：`show()`、`ReportFinance()`、`ReportEmployee()`。
+4. 指令类（Command）:
+
+实现以下函数：`read()`、`getstr()`
+
+5. 书店类（Bookstore）:
+
+存储以下信息：所有的文件、指令、登陆栈
+
+实现以下函数（账户相关）：`su()`、`logout()`、`register()`、`passwd()`、`useradd()`、`delete()`。
+
+实现以下函数（图书相关）：`show()`、`buy()`、`select()`、`modify()`、`import()`。
+
+实现以下函数（日志相关）：`show()`、`ReportFinance()`、`ReportEmployee()`。
 
 # 其他补充说明
 
