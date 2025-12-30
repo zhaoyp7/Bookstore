@@ -13,7 +13,6 @@ public:
   Account();
   Account(const char *id, const char *pw, const char *name, int type = 1);
   void passwd(char *new_pw);
-  ;
   void Delete();
   friend class Bookstore;
 };

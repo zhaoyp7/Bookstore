@@ -2,10 +2,8 @@
 #include "utils.hpp"
 
 void Bookstore::main() {
-  init();
   while (command.read()) {
     std::string op = command.getstr();
-    // std::cout << "op = " << op << '\n';
     try {
       if (op == "su") {
         Su();
@@ -344,7 +342,6 @@ void Bookstore::Buy() {
   int finance_index;
   finance_data.get_info(finance_index, 1);
   Finance tmp(cost, 0, book.ISBN, now_user.userID, finance_index);
-  // = (Finance){cost, 0, finance_index};
   finance_index = finance_data.write(tmp);
   finance_data.write_info(finance_index, 1);
   int count;

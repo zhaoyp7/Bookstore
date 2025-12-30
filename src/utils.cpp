@@ -173,13 +173,13 @@ int StringToInt(const std::string &str) {
   return ans;
 }
 
-bool CheckLegalString(const char* str, int limit_len) {
+bool CheckLegalString(const char *str, int limit_len) {
   int sz = strlen(str);
   int pos = 0;
   while (pos < sz) {
     unsigned char c = str[pos];
     int len = 0;
-    if (c <= 0x7F) { //0xxxxxxx
+    if (c <= 0x7F) { // 0xxxxxxx
       len = 1;
     } else if (c >> 5 == 0x06) { // 110xxxxxxx
       len = 2;
@@ -211,9 +211,11 @@ bool CheckLegalString(const char* str, int limit_len) {
     if (len == 2) {
       value = ((str[pos] & 0x1F) << 6) | (str[pos + 1] & 0x3F);
     } else if (len == 3) {
-      value = ((str[pos] & 0x0F) << 12) | ((str[pos + 1] & 0x3F) << 6) | (str[pos + 1] & 0x3F);
+      value = ((str[pos] & 0x0F) << 12) | ((str[pos + 1] & 0x3F) << 6) |
+              (str[pos + 1] & 0x3F);
     } else if (len == 4) {
-      value = ((str[pos] & 0x07) << 18) | ((str[pos + 1] & 0x3F) << 12) | ((str[pos + 1] & 0x3F) << 6) | (str[pos + 1] & 0x3F);
+      value = ((str[pos] & 0x07) << 18) | ((str[pos + 1] & 0x3F) << 12) |
+              ((str[pos + 1] & 0x3F) << 6) | (str[pos + 1] & 0x3F);
     }
 
     bool flag = 0;

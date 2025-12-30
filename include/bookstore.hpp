@@ -61,7 +61,6 @@ public:
                           std::string &author, std::string &key,
                           std::string &price_str, int op);
   void Modify();
-
   int KeywordNumber(const std::string &str);
   bool FindKeyword(const Book &book, const std::string &key);
   void ShowBook();
@@ -71,6 +70,5 @@ public:
   void ReportEmployee();
   void Report();
   void ShowLog();
-
   void main();
 };
